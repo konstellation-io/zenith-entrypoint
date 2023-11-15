@@ -1,0 +1,7 @@
+{
+    "UnauthorizedTransactionClassifier": {
+        "input_subject": "qa-ut-rep2_ut-3-8-0_UnauthorizedTransactionClassifier.exitpoint",
+        "output_subject": "qa-ut-rep2_ut-3-8-0_UnauthorizedTransactionClassifier.entrypoint",
+        "stream": "qa-ut-rep2_ut-3-8-0_UnauthorizedTransactionClassifier"
+    }
+}
