@@ -186,27 +186,25 @@ func getMaxMessageSize(js nats.JetStreamContext, nc *nats.Conn, stream string) (
 
 func subscriptionCallback(channelsMap cmap.ConcurrentMap[string, chan *krepb.KreNatsMessage]) func(msg *nats.Msg) {
 	return func(msg *nats.Msg) {
+		defer ackMsg(msg)
+
 		slog.Info("New message received")
 
 		kreMessage, err := parseToKreNatsMessage(msg.Data)
 		if err != nil {
 			slog.Error("parsing message to kre nats", "error", err)
-			ackMsg(msg)
 			return
 		}
 
 		resChan, ok := channelsMap.Get(kreMessage.RequestId)
 		if !ok {
 			slog.Error("Response channel for request not found", "requestID", kreMessage.RequestId)
-			ackMsg(msg)
 			return
 		}
 
 		channelsMap.Remove(kreMessage.RequestId)
 
 		resChan <- kreMessage
-
-		ackMsg(msg)
 	}
 }
 

@@ -84,7 +84,7 @@ func (s *KreGrpcService) UnauthorizedTransactionFeatureStorage(_ context.Context
 }
 
 func (s *KreGrpcService) prepareOutputMsg(
-	req proto.Message,
+	req *publicpb.InferenceRequest,
 	requestID string,
 	streamInfo internal.StreamInfo,
 ) ([]byte, error) {
@@ -105,7 +105,7 @@ func (s *KreGrpcService) prepareOutputMsg(
 	return outputMsg, nil
 }
 
-func (s *KreGrpcService) getKreNatsMessageBytes(req proto.Message, requestID string) ([]byte, error) {
+func (s *KreGrpcService) getKreNatsMessageBytes(req *publicpb.InferenceRequest, requestID string) ([]byte, error) {
 	payload, err := anypb.New(req)
 	if err != nil {
 		return nil, err
