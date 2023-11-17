@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package main;
 
-option go_package = "./zenithproto";
+option go_package = "./publicpb";
 
 
 message InferenceRequest{

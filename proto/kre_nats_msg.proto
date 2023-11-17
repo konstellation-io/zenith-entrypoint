@@ -1,0 +1,20 @@
+syntax = "proto3";
+import "google/protobuf/any.proto";
+
+option go_package = "./krepb";
+
+enum MessageType {
+  UNDEFINED = 0;
+  OK = 1;
+  ERROR = 2;
+  EARLY_REPLY = 3;
+  EARLY_EXIT = 4;
+}
+
+message KreNatsMessage {
+  string request_id = 1;
+  google.protobuf.Any payload = 2;
+  string error = 3;
+  string from_node = 4;
+  MessageType message_type = 5;
+}
