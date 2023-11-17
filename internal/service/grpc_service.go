@@ -23,14 +23,12 @@ var ErrMessageToBig = errors.New("message to big")
 
 type KreGrpcService struct {
 	publicpb.UnimplementedEntrypointServer
-	js       nats.JetStreamContext
-	nc       *nats.Conn
-	subjects map[string]*internal.StreamInfo
-	//channelsMap *sync.Map
-	channelsMap cmap.ConcurrentMap[string, chan *krepb.KreNatsMessage]
+	js                   nats.JetStreamContext
+	nc                   *nats.Conn
+	streamsConfiguration map[string]*internal.StreamInfo
+	channelsMap          cmap.ConcurrentMap[string, chan *krepb.KreNatsMessage]
 }
 
-// func NewKreGrpcService(js nats.JetStreamContext, nc *nats.Conn, subjects map[string]kre.StreamInfo, channelsMap *sync.Map) *KreGrpcService {
 func NewKreGrpcService(js nats.JetStreamContext, nc *nats.Conn, subjects map[string]*internal.StreamInfo, channelsMap cmap.ConcurrentMap[string, chan *krepb.KreNatsMessage]) *KreGrpcService {
 	return &KreGrpcService{
 		publicpb.UnimplementedEntrypointServer{},
@@ -46,7 +44,7 @@ func (s *KreGrpcService) UnauthorizedTransactionClassifier(_ context.Context, re
 
 	slog.Info("Processing new message", "requestID", requestID)
 
-	streamInfo := s.subjects["UnauthorizedTransactionClassifier"]
+	streamInfo := s.streamsConfiguration["UnauthorizedTransactionClassifier"]
 
 	preparedMsg, err := s.prepareOutputMsg(req, requestID, *streamInfo)
 	if err != nil {
@@ -81,8 +79,12 @@ func (s *KreGrpcService) UnauthorizedTransactionClassifier(_ context.Context, re
 	return &grpcRes, nil
 }
 
+func (s *KreGrpcService) UnauthorizedTransactionFeatureStorage(_ context.Context, _ *publicpb.DatabaseRequest) (*publicpb.FeatureStorageResponse, error) {
+	return nil, errors.New("unimplemented endpoint")
+}
+
 func (s *KreGrpcService) prepareOutputMsg(
-	req *publicpb.InferenceRequest,
+	req proto.Message,
 	requestID string,
 	streamInfo internal.StreamInfo,
 ) ([]byte, error) {
@@ -103,7 +105,7 @@ func (s *KreGrpcService) prepareOutputMsg(
 	return outputMsg, nil
 }
 
-func (s *KreGrpcService) getKreNatsMessageBytes(req *publicpb.InferenceRequest, requestID string) ([]byte, error) {
+func (s *KreGrpcService) getKreNatsMessageBytes(req proto.Message, requestID string) ([]byte, error) {
 	payload, err := anypb.New(req)
 	if err != nil {
 		return nil, err
@@ -122,10 +124,6 @@ func (s *KreGrpcService) getKreNatsMessageBytes(req *publicpb.InferenceRequest, 
 	}
 
 	return outputMsg, nil
-}
-
-func (s *KreGrpcService) UnauthorizedTransactionFeatureStorage(_ context.Context, _ *publicpb.DatabaseRequest) (*publicpb.FeatureStorageResponse, error) {
-	return nil, errors.New("unimplemented endpoint")
 }
 
 func (s *KreGrpcService) isCompressionRequired(msg []byte, streamInfo internal.StreamInfo) bool {
